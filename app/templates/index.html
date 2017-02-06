@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:fb="http://www.facebook.com/2008/fbml">
+<head>
+    <title>Python Flask App</title>
+    <link href="http://getbootstrap.com/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="http://getbootstrap.com/examples/jumbotron-narrow/jumbotron-narrow.css" rel="stylesheet">
+
+    <script src="../static/js/node_modules/jquery/dist/jquery.min.js"></script>
+    <script>
+        function statusChangeCallback(response) {
+            console.log('statusChangeCallback');
+            console.log(response);
+            if (response.status === 'connected') {
+                testAPI(response);
+            } else if (response.status === 'not_authorized') {
+                document.getElementById('status').innerHTML = 'Please log ' + 'into this app.';
+            } else {
+                document.getElementById('status').innerHTML = 'Please log ' + 'into Facebook.';
+            }
+        }
+
+        function checkLoginState() {
+            FB.getLoginStatus(function(response) {
+                statusChangeCallback(response);
+            });
+        }
+
+        window.fbAsyncInit = function() {
+            FB.init({
+                appId      : '{142456932863312}',
+                cookie     : true,
+                xfbml      : true,
+                version    : 'v2.7'
+            });
+
+            FB.getLoginStatus(function(response) {
+                statusChangeCallback(response);
+            });
+        };
+
+        (function(d, s, id) {
+            var js, fjs = d.getElementsByTagName(s)[0];
+            if (d.getElementById(id)) return;
+            js = d.createElement(s); js.id = id;
+            js.src = "//connect.facebook.net/en_US/sdk.js#xfbml=1&version=v2.7&appId=142456932863312";
+            fjs.parentNode.insertBefore(js, fjs);
+        }(document, 'script', 'facebook-jssdk'));
+
+        function testAPI(response) {
+           if (response.authResponse) {
+               console.log('Welcome!  Fetching your information.... ');
+               FB.api('/me', {fields: 'id,email,gender,name,birthday,location'}, function(res) {
+                   console.log('Good to see you, ' + JSON.stringify(res) + '.');
+                   $.post( "/facebook/saveUserDetails", {
+                       data: JSON.stringify(res)
+                   });
+               });
+               FB.api('/me/feed', {fields: 'id,story,message,link,picture,type,created_time'}, function(res) {
+                   $.post( "/facebook/saveAllPosts", {
+                       data: JSON.stringify(res)
+                   });
+               });
+           } else {
+             console.log('User cancelled login or did not fully authorize.');
+           }
+        }
+    </script>
+
+    <meta charset="UTF-8">
+</head>
+<body onFocus="parent_disable();" onclick="parent_disable();" >
+    <div class="container">
+        <div class="header">
+            <nav>
+                <ul class="nav nav-pills pull-right">
+                    <li role="presentation" class="active"><a href="#">Home</a>
+                    </li>
+                    <li role="presentation"><a href="showLogIn">Sign In</a>
+                    </li>
+                    <li role="presentation"><a href="showSignUp">Sign Up</a>
+                    </li>
+                </ul>
+            </nav>
+            <h3 class="text-muted">Python Flask App</h3>
+        </div>
+
+        <div class="jumbotron">
+            <h1>Pariksha</h1>
+            <p class="lead"></p>
+            <p><a class="btn btn-lg btn-success" href="showSignUp" role="button">Sign up</a>
+            </p>
+        </div>
+
+        <div class="row marketing">
+            <h2>Connect To</h2>
+            <div class="col-lg-6">
+                <ul>
+                <h4>Facebook</h4>
+                    <fb:login-button scope="email, user_about_me, user_birthday, user_location" onlogin="checkLoginState();">
+<!--{#                        <input id="fb" type="image" src="/static/images/fb-login-button.png"/>#}-->
+                    </fb:login-button>
+
+                    <!--{#<a id="fb" href="javascript:fbLogin()">-->
+                        <!--<input id="fb" type="image" src="/static/images/fb-login-button.png"/>-->
+                    <!--</a>#}-->
+
+                <h4>Twitter</h4>
+                    <a id="tw" href="javascript:popup()">
+                        <input id="tw" type="image" src="/static/images/sign-in-with-twitter-gray.png"/>
+                    </a>
+
+                <h4>Instagram</h4>
+                    <a id="insta" href="javascript:popup()">
+                        <input id="insta" type="image" src="/static/images/button-instagram-signin.png"/>
+                    </a>
+
+                <h4>LinkedIn</h4>
+                    <a id="linkedIn" href="javascript:popup()">
+                        <input id="linkedIn" type="image" src="/static/images/linked-in.png"/>
+                    </a>
+
+                    <script type="text/javascript">
+                        $('#tw').click(function () {
+                            $.ajax({
+                                url: '/twitter/Oauth',
+                                type: 'POST',
+                                success: function (response) {
+                                    popup(response);
+                                    console.log(response);
+                                },
+                                error: function (response) {
+                                    console.log(response);
+                                }
+                            });
+                        });
+
+                        $('#insta').click(function () {
+                            $.ajax({
+                                url: '/instagram/Oauth',
+                                type: 'POST',
+                                success: function (response) {
+                                    popup(response);
+                                    console.log(response);
+                                },
+                                error: function (response) {
+                                    console.log(response);
+                                }
+                            });
+                        });
+
+                        $('#linkedIn').click(function () {
+                            $.ajax({
+                                url: '/linkedIn/Oauth',
+                                type: 'POST',
+                                success: function (response) {
+                                    popup(response);
+                                    console.log(response);
+                                },
+                                error: function (response) {
+                                    console.log(response);
+                                }
+                            });
+                        });
+
+                        var popupWindow=null;
+                        function popup(response) {
+                            popupWindow = window.open(response,'name','width=800,height=800');
+                        }
+
+                        function parent_disable() {
+                        if(popupWindow && !popupWindow.closed)
+                            popupWindow.focus();
+                        }
+                    </script>
+                </ul>
+            </div>
+        </div>
+
+        <footer class="footer">
+            <p>Rahul Sharma</p>
+        </footer>
+
+    </div>
+</body>
+</html>
